@@ -1,0 +1,58 @@
+name: Deploy Backend Service
+on:
+  push:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          check-latest: true
+          cache-dependency-path: 'package-lock.json'
+      - run: npm ci
+      - run: npm run build
+      - uses: appleboy/ssh-action@master
+        with:
+          host: ${{secrets.HOST}}
+          username: ${{secrets.USERNAME}}
+          key: ${{secrets.KEY}}
+          script: |
+            echo "Remove existing files"
+            rm -rf apps/backend-core
+      - uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{secrets.HOST}}
+          username: ${{secrets.USERNAME}}
+          key: ${{secrets.KEY}}
+          source: 'dist/*,process-config.json,package.json,package-lock.json'
+          target: "apps/backend-core"
+      - uses: appleboy/ssh-action@master
+        with:
+          host: ${{secrets.HOST}}
+          username: ${{secrets.USERNAME}}
+          key: ${{secrets.KEY}}
+          script: |
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh
+            echo "1 -- Changing Directory"
+            cd apps/backend-core
+            echo "2 -- Copying environment variables"
+            mkdir dist/config
+            cp ~/.production/menu-service/env.config.yaml ./dist/config
+            cp ~/.production/menu-service/ca-certificate.crt .
+            echo "3 -- Stop application"
+            pm2 stop backend-core-service
+            echo "4 -- Run Migrations"
+            npm install typeorm pg --save
+            npm run typeorm:generate
+            npm run typeorm:migrate
+            echo "5 -- Start application"
+            pm2 start backend-core-service
+            echo "✅✅✅✅✅ App build complete"
