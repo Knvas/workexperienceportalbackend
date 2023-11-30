@@ -13,7 +13,7 @@ async function bootstrap() {
     const reflector = app.get(Reflector);
 
     const configService = app.get(ConfigService);
-    const portNumber = +configService.get<number>("port");
+    const portNumber = +configService.get<number>("PORT");
 
     app.use(helmet());
     app.enableCors();

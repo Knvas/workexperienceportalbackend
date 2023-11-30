@@ -1,24 +1,24 @@
 import {TypeOrmModuleOptions} from "@nestjs/typeorm";
-import appConfig from "../../app/config/app.config";
 import {NodeEnv} from "../../shared/constant/node-env";
 import {registerAs} from "@nestjs/config";
 import {readFileSync} from "fs";
 import {AuthenticationSubscriber} from "../../auth/suscribers/authentication.subscriber";
+import * as process from "process";
+import appConfig from "../../app/config/app.config";
 
 const config = appConfig();
-const dbConfig = config.db;
 
 export const databaseConfigOptions: TypeOrmModuleOptions = {
     type: "postgres",
-    database: dbConfig.database,
-    host: dbConfig.host,
-    port: +dbConfig.port,
-    username: dbConfig.user,
-    password: dbConfig.password,
-    logging: config.node_env === NodeEnv.DEVELOPMENT,
-    synchronize: config.node_env === NodeEnv.DEVELOPMENT,
-    ssl: config.node_env === NodeEnv.DEVELOPMENT ? false : {
-        ca: readFileSync(dbConfig.certificate),
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    port: +process.env.DB_PORT,
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    logging: process.env.NODE_ENV === NodeEnv.DEVELOPMENT,
+    synchronize: process.env.NODE_ENV === NodeEnv.DEVELOPMENT,
+    ssl: process.env.NODE_ENV === NodeEnv.DEVELOPMENT ? false : {
+        ca: readFileSync(process.env.DB_CERTIFICATE || ""),
         rejectUnauthorized: false
     },
     autoLoadEntities: true,

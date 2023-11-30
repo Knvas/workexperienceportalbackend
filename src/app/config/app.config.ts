@@ -1,8 +1,5 @@
-import {join} from "path";
-import * as Joi from "joi";
-import {NodeEnv} from "../../shared/constant/node-env";
-import {validateConfig} from "../../shared/util/validate-config";
-import loadYamlConfigFile from "../../shared/util/load-yaml-config-file";
+import * as dotEnv from "dotenv";
+import * as process from "process";
 
 const CONFIG_FILE_NAME: string = "../../config/env.config.yaml";
 
@@ -12,33 +9,27 @@ const CONFIG_FILE_NAME: string = "../../config/env.config.yaml";
  * @returns {Record<string, any>} - The loaded configuration object.
  */
 export default (): Record<string, any> => {
-    const configuration = loadYamlConfigFile(
-        join(__dirname, CONFIG_FILE_NAME)
-    );
+    const envFile = dotEnv.config();
+    // const schema = Joi.object({
+    //     PORT: Joi.number().required(),
+    //     NODE_ENV: Joi.string()
+    //         .valid(NodeEnv.DEVELOPMENT, NodeEnv.PRODUCTION)
+    //         .required(),
+    //     // database validate
+    //     DB_NAME: Joi.string().required(),
+    //     DB_HOST: Joi.string().required(),
+    //     DB_PORT: Joi.number().required(),
+    //     DB_USER: Joi.string().required(),
+    //     DB_PASSWORD: Joi.string().required(),
+    //     DB_CERTIFICATE: Joi.string().required(),
+    //     STORAGE_BUCKET_KEY: Joi.string().required(),
+    //     STORAGE_BUCKET_SECRET: Joi.string().required(),
+    //     STORAGE_BUCKET_ENDPOINT: Joi.string().required(),
+    //     STORAGE_BUCKET_CDN_ENDPOINT: Joi.string().required(),
+    //     JWT_SECRET: Joi.string().required()
+    // });
+    //
+    // validateConfig(configuration, schema);
 
-    const schema = Joi.object({
-        port: Joi.number().required(),
-        node_env: Joi.string()
-            .valid(NodeEnv.DEVELOPMENT, NodeEnv.PRODUCTION)
-            .required(),
-        db: Joi.object({
-            database: Joi.string().required(),
-            host: Joi.string().required(),
-            port: Joi.number().required(),
-            user: Joi.string().required(),
-            password: Joi.string().required(),
-            certificate: Joi.string().required()
-        }),
-        storage_bucket: Joi.object({
-            key: Joi.string().required(),
-            secret: Joi.string().required(),
-            endpoint: Joi.string().required(),
-            cdn_endpoint: Joi.string().required()
-        }),
-        jwt_secret: Joi.string().required()
-    });
-
-    validateConfig(configuration, schema);
-
-    return configuration;
+    return process.env;
 }
